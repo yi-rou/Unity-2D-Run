@@ -36,7 +36,8 @@ public class Player : MonoBehaviour
     public AudioClip soundHit;
     [Header("是否死亡")]
     public bool dead;
-
+    [Header("動畫控制器")]
+    public Animator ani;
     #endregion
 
     #region  方法區域
@@ -46,7 +47,8 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Jump()
     {
-        print("跳躍");
+        bool code = Input.GetKey(KeyCode.J);
+        ani.SetBool("跳躍開關", code);
     }
 
     /// <summary>
@@ -54,7 +56,8 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Slide()
     {
-
+        bool key = Input.GetKey(KeyCode.S);
+        ani.SetBool("滑行開關", key);
     }
 
     /// <summary>
@@ -95,7 +98,8 @@ public class Player : MonoBehaviour
     //監控玩家鍵盤.滑鼠與觸控
     private void Update()
     {
-         
+        Jump();
+        Slide();
     }
     #endregion
 }
