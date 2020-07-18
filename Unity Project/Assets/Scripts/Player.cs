@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
@@ -25,7 +26,7 @@ public class Player : MonoBehaviour
     // Range 範圍
     [Header("速度"), Tooltip("角色速度"), Range(1, 50)]
     public int speed = 8;
-    [Header("血量"), Tooltip("角色血量"), Range(500, 1500)]
+    [Header("血量"), Tooltip("角色血量"), Range(0, 1500)]
     public float hp = 799.99f;
     public int coin;
     [Header("跳躍高度"), Range(100, 1000)]
@@ -34,6 +35,8 @@ public class Player : MonoBehaviour
     public AudioClip soundJump;
     public AudioClip soundSlide;
     public AudioClip soundHit;
+    public AudioClip soundCoin;
+    public AudioSource aud;
     [Header("是否死亡")]
     public bool dead;
     [Header("動畫控制器")]
@@ -44,6 +47,12 @@ public class Player : MonoBehaviour
     public Rigidbody2D rig;
 
     public bool isGround;
+
+    public Text textCoin;
+
+    public Image imgHp;
+
+    private float hpMax;
     #endregion
 
     #region  方法區域
@@ -55,7 +64,7 @@ public class Player : MonoBehaviour
     private void Move()
     {
         //   剛體.加速度.大小
-        if (rig.velocity.magnitude < 10)
+        if (rig.velocity.magnitude < 5)
         {
             rig.AddForce(new Vector2(speed, 0));
         }
@@ -71,6 +80,7 @@ public class Player : MonoBehaviour
             {
                 isGround = false;
                 rig.AddForce(new Vector2(0, height));
+                aud.PlayOneShot(soundJump);
             }
 
         }
@@ -87,6 +97,7 @@ public class Player : MonoBehaviour
         {
             cc2D.offset = new Vector2(-1.3f, -0.7f);
             cc2D.size = new Vector2(1.7f, 2);
+            aud.PlayOneShot(soundSlide);
         }
         else
         {
@@ -100,15 +111,22 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Hit()
     {
+        hp -= 9.9f;
 
+        imgHp.fillAmount = hp / hpMax;
+
+        aud.PlayOneShot(soundHit);
     }
 
     /// <summary>
     /// 吃到金幣會增加數量.更新介面.吃金幣音效
     /// </summary>
-    private void EatCoin()
+    private void EatCoin(Collider2D collision)
     {
-
+        coin++;
+        Destroy(collision.gameObject);
+        textCoin.text = "金幣:" + coin;
+        aud.PlayOneShot(soundCoin);
     }
 
     /// <summary>
@@ -126,7 +144,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-
+         hpMax =  hp;
     }
 
     //一秒執行60次
@@ -134,6 +152,7 @@ public class Player : MonoBehaviour
     private void Update()
     {
         Slide();
+        
     }
 
     /// <summary>
@@ -151,6 +170,28 @@ public class Player : MonoBehaviour
         if (collision.gameObject.name == "地板")
         {
             isGround = true;
+        }
+                                                        
+        if (collision.gameObject.name == "懸浮地板")
+        {
+            isGround = true;
+        }
+    }
+
+    /// <summary>
+    /// 觸發事件:碰到勾選物件執行
+    /// </summary>
+    /// <param name="collision"></param>
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "金幣")
+        {
+            EatCoin(collision);
+        }
+
+        if (collision.gameObject.tag == "障礙物")
+        {
+            Hit();
         }
     }
 }
