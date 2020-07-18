@@ -51,8 +51,10 @@ public class Player : MonoBehaviour
     public Text textCoin;
 
     public Image imgHp;
-
+    public GameObject final;
     private float hpMax;
+    public Text textEnd;
+    public Text textTilte;
     #endregion
 
     #region  方法區域
@@ -92,12 +94,13 @@ public class Player : MonoBehaviour
     private void Slide()
     {
         bool key = Input.GetKey(KeyCode.S);
+        if (Input.GetKeyDown(KeyCode.S))  aud.PlayOneShot(soundSlide);
+
         ani.SetBool("滑行開關", key);
         if (key)
         {
             cc2D.offset = new Vector2(-1.3f, -0.7f);
             cc2D.size = new Vector2(1.7f, 2);
-            aud.PlayOneShot(soundSlide);
         }
         else
         {
@@ -116,6 +119,8 @@ public class Player : MonoBehaviour
         imgHp.fillAmount = hp / hpMax;
 
         aud.PlayOneShot(soundHit);
+
+        if (hp <= 0) Dead();
     }
 
     /// <summary>
@@ -134,7 +139,24 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Dead()
     {
+        if (dead) return;
 
+        dead = true;
+        speed = 0;
+        ani.SetTrigger("死亡觸發");
+        final.SetActive(true);
+        textTilte.text = ("已死");
+        textEnd.text = ("金幣總量:" + coin);
+    }
+
+    private void Pass()
+    {
+        print("過關");
+        final.SetActive(true);
+        textTilte.text = ("過關了~");
+        textEnd.text = ("金幣總量:" + coin);
+        speed = 0;
+        rig.velocity = Vector3.zero;
     }
 
     #endregion
@@ -151,15 +173,17 @@ public class Player : MonoBehaviour
     //監控玩家鍵盤.滑鼠與觸控
     private void Update()
     {
+        if (dead) return;
         Slide();
-        
+        if (transform.position.y <= -4) Dead();
     }
 
     /// <summary>
     /// 如果有剛體的方法 建議使用
     /// </summary>
     private void FixedUpdate()
-    {        
+    {
+        if (dead) return;
         Move();
         Jump();
     }
@@ -184,14 +208,10 @@ public class Player : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "金幣")
-        {
-            EatCoin(collision);
-        }
+        if (collision.gameObject.tag == "金幣") EatCoin(collision);
 
-        if (collision.gameObject.tag == "障礙物")
-        {
-            Hit();
-        }
+        if (collision.gameObject.tag == "障礙物") Hit();
+
+        if (collision.gameObject.name == "傳送門") Pass();
     }
 }
